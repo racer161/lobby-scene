@@ -14,16 +14,15 @@ export class MouseInput
 
         this.scroll_delta = 0;
 
-        this.sensitivity = 0.01;
-
         window.onmousedown = function(e)
         {
+            
             that.button_state[e.button] = true;
         }
 
         window.onmousemove = function(e)
         {
-            that.mouseDelta = new Vector2(e.movementX * that.sensitivity, e.movementY * that.sensitivity);
+            that.mouseDelta = new Vector2(e.movementX, e.movementY);
         }
 
         window.onwheel = function(e)

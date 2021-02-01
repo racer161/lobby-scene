@@ -10,6 +10,10 @@ export class EditorCameraController
         this.camera.position.y = 7;
         this.camera.position.z = 11;
 
+        this.rotation_sensitivity = 0.002;
+        this.translation_sensitivity = 0.01;
+        this.zoom_sensitivity = 0.5;
+
         this.euler_rotation = new Euler();
     }
 
@@ -22,28 +26,23 @@ export class EditorCameraController
         //ROTATE
         if(this.mouse_input.button_state[2])
         {
-            this.camera.rotateOnWorldAxis(new Vector3(0,1,0), -this.mouse_input.mouseDelta.x);
-            this.camera.rotateX(-this.mouse_input.mouseDelta.y)
+            this.camera.rotateOnWorldAxis(new Vector3(0,1,0), -this.mouse_input.mouseDelta.x * this.rotation_sensitivity);
+            this.camera.rotateX(-this.mouse_input.mouseDelta.y * this.rotation_sensitivity)
         }
 
         //TRANSLATE
         if(this.mouse_input.button_state[1])
         {
-            var result = new Vector3(-this.mouse_input.mouseDelta.x,this.mouse_input.mouseDelta.y,0);
+            var result = new Vector3(-this.mouse_input.mouseDelta.x * this.translation_sensitivity,this.mouse_input.mouseDelta.y * this.translation_sensitivity,0);
             result.applyQuaternion(this.camera.quaternion);
-            //console.log(result);
             this.camera.position.add(result);
-            //this.camera.position.y += this.mouse_input.mouseDelta.y;
-
-            console.log(this.camera.position);
         }
 
         //ZOOM
         if(this.mouse_input.scroll_delta !=0 )
         {
-            var result = new Vector3(0,0,this.mouse_input.scroll_delta);
+            var result = new Vector3(0,0,this.mouse_input.scroll_delta * this.zoom_sensitivity);
             result.applyQuaternion(this.camera.quaternion);
-            //console.log(result);
             this.camera.position.add(result);
         }
     }

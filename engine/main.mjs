@@ -2,6 +2,7 @@
 import { Scene, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh, LineBasicMaterial, Vector3, BufferGeometry, Line } from "./three.module.js";
 import { MouseInput } from "./input.mjs";
 import { EditorCameraController } from "./camera.mjs";
+import { Floor } from "./construction/floor.mjs";
 
 const scene = new Scene();
 const mouse_input = new MouseInput();
@@ -16,6 +17,10 @@ const geometry = new BoxGeometry();
 const material = new MeshBasicMaterial( { color: 0x00ff00 } );
 const cube = new Mesh( geometry, material );
 scene.add( cube );
+
+const textured_cube = new Floor(16);
+
+scene.add(textured_cube.mesh);
 
 
 function build_grid()
@@ -46,6 +51,8 @@ function build_grid()
 
     const line = new Line( geometry, material );
     scene.add( line );
+
+
 }
 
 
