@@ -1,46 +1,92 @@
-import { BufferGeometry, Mesh, MeshPhongMaterial, TextureLoader, BufferAttribute  } from "../three.module.js";
+import { BufferGeometry, Mesh, MeshPhongMaterial, TextureLoader, BufferAttribute, Float32BufferAttribute, DoubleSide, MeshStandardMaterial, NearestFilter  } from "../three.module.js";
 
 export class Floor
 {
-    constructor(size)
+    constructor(size, material)
     {
         this.size = size;
         this.grid = new Array(size * size).fill(0);
-        this.geometry = new BufferGeometry();
+        this.geometry = this.build();
 
 
         const loader = new TextureLoader();
-        const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/star.png');
+        const texture = loader.load('./resources/acacia_planks.png');
+        texture.magFilter = NearestFilter;
 
-        this.material = new MeshPhongMaterial({color: 0xFF8888, map: texture});
+        this.material = new MeshStandardMaterial( {
+            side: DoubleSide,
+            map: texture
+        } );
 
-        this.build_tile(1,1,0);
+        this.build();
 
         this.mesh = new Mesh(this.geometry, this.material);
     }
 
     build()
     {
-        for(var x = 0; x < this.size; x++)
-            for(var z = 0; z < this.size; z++)
-                this.build_tile(x,y,value);
+        const vertices = [];
+        const normals = [];
+        const indices = [];
+        const colors = [];
+        const uvs = [];
 
+        for(var z = 0; z <= this.size; z++)
+        {
+            for(var x = 0; x <= this.size; x++)
+            {
+                vertices.push(x,0,z);
+
+                normals.push( 0, 1, 0 );
+
+                uvs.push(x/this.size,z/this.size);
+
+                const r = ( x / this.size ) + 0.5;
+				const g = ( z / this.size ) + 0.5;
+
+				colors.push( r, g, 1 );
+            }
+        }
+
+        for ( let i = 0; i < this.size; i ++ ) {
+
+            for ( let j = 0; j < this.size; j ++ ) {
+
+                const a = i * ( this.size + 1 ) + ( j + 1 );
+                const b = i * ( this.size + 1 ) + j;
+                const c = ( i + 1 ) * ( this.size + 1 ) + j;
+                const d = ( i + 1 ) * ( this.size + 1 ) + ( j + 1 );
+
+                // generate two faces (triangles) per iteration
+
+                indices.push( a, b, d ); // face one
+                indices.push( b, c, d ); // face two
+
+            }
+
+        }
+
+        var geometry = new BufferGeometry();
+        geometry.setIndex(indices);
+        geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
+        geometry.setAttribute( 'color', new Float32BufferAttribute(colors, 3 ) );
+        geometry.setAttribute( 'normal', new Float32BufferAttribute(normals, 3 ) );
+
+        geometry.setAttribute( 'uv', new Float32BufferAttribute(uvs, 2 ) );
+
+        geometry.computeFaceNormals();
         
+        return geometry;
     }
 
     build_tile(x,z,value)
     {
-        const vertices = new Float32Array( [
-            -1.0, -1.0,  1.0,
-             1.0, -1.0,  1.0,
-             1.0,  1.0,  1.0,
-        
-             1.0,  1.0,  1.0,
-            -1.0,  1.0,  1.0,
-            -1.0, -1.0,  1.0
-        ] );
+        const vertices = [];
+        vertices.push(-1.0, -1.0,  1.0);
+        vertices.push(1.0, -1.0,  1.0);
+        vertices.push(1.0,  1.0,  1.0);
 
-        this.geometry.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
+        console.log(vertices);
 
         /*this.geometry.faces.push(
             // front

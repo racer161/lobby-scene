@@ -1,5 +1,5 @@
 
-import { Scene, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh, LineBasicMaterial, Vector3, BufferGeometry, Line } from "./three.module.js";
+import { Scene, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh, LineBasicMaterial, Vector3, BufferGeometry, Line, DirectionalLight, HemisphereLight, MeshPhongMaterial, DoubleSide, MeshStandardMaterial } from "./three.module.js";
 import { MouseInput } from "./input.mjs";
 import { EditorCameraController } from "./camera.mjs";
 import { Floor } from "./construction/floor.mjs";
@@ -14,9 +14,12 @@ renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
 const geometry = new BoxGeometry();
-const material = new MeshBasicMaterial( { color: 0x00ff00 } );
-const cube = new Mesh( geometry, material );
+const material_1 = new MeshStandardMaterial( { color: 0x00ff00 } );
+const cube = new Mesh( geometry, material_1 );
 scene.add( cube );
+
+const light = new HemisphereLight();
+scene.add( light );
 
 const textured_cube = new Floor(16);
 
@@ -67,6 +70,6 @@ function animate() {
 
 
 }
-build_grid();
+//build_grid();
 
 animate();
