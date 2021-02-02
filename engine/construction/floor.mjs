@@ -2,6 +2,7 @@ import { BufferGeometry, Mesh, MeshPhongMaterial, TextureLoader, BufferAttribute
 
 export class Floor
 {
+    //useless change
     constructor(size, material)
     {
         this.size = size;
