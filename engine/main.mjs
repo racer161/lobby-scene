@@ -15,8 +15,8 @@ document.body.appendChild( renderer.domElement );
 
 const geometry = new BoxGeometry();
 const material_1 = new MeshStandardMaterial( { color: 0x00ff00 } );
-const cube = new Mesh( geometry, material_1 );
-scene.add( cube );
+//const cube = new Mesh( geometry, material_1 );
+//scene.add( cube );
 
 const light = new HemisphereLight();
 scene.add( light );
