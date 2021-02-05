@@ -14,6 +14,7 @@ export class Floor
         const loader = new TextureLoader();
         const texture = loader.load('./resources/acacia_planks.png');
         texture.magFilter = NearestFilter;
+        texture.minFilter = NearestFilter;
 
         this.material = new MeshStandardMaterial( {
             side: DoubleSide,
@@ -30,27 +31,45 @@ export class Floor
         const vertices = [];
         const normals = [];
         const indices = [];
-        const colors = [];
+        //const colors = [];
         const uvs = [];
 
-        for(var z = 0; z <= this.size; z++)
+        for(var z = 0; z < this.size; z++)
         {
-            for(var x = 0; x <= this.size; x++)
+            for(var x = 0; x < this.size; x++)
             {
-                vertices.push(x,0,z);
+                
+
+                vertices.push(x,0,z);//0
+                vertices.push(x + 1,0,z);//1
+                vertices.push(x,0,z + 1);//2
+                vertices.push(x + 1, 0, z + 1);//3
 
                 normals.push( 0, 1, 0 );
+                normals.push( 0, 1, 0 );
+                normals.push( 0, 1, 0 );
+                normals.push( 0, 1, 0 );
 
-                uvs.push(x/this.size,z/this.size);
+                uvs.push(0,0);
+                uvs.push(1,0);
+                uvs.push(0,1);
+                uvs.push(1,1);
+
+                var first_index = (x + (z * this.size)) * 4;
+
+                indices.push(first_index, first_index + 3, first_index + 2);
+                indices.push(first_index, first_index+1, first_index +3);
+
+                //var tile_type = this.grid[x + (z * this.size)];
 
                 const r = ( x / this.size ) + 0.5;
 				const g = ( z / this.size ) + 0.5;
 
-				colors.push( r, g, 1 );
+				//colors.push( r, g, 1 );
             }
         }
 
-        for ( let i = 0; i < this.size; i ++ ) {
+        /*for ( let i = 0; i < this.size; i ++ ) {
 
             for ( let j = 0; j < this.size; j ++ ) {
 
@@ -66,12 +85,12 @@ export class Floor
 
             }
 
-        }
+        }*/
 
         var geometry = new BufferGeometry();
         geometry.setIndex(indices);
         geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-        geometry.setAttribute( 'color', new Float32BufferAttribute(colors, 3 ) );
+        //geometry.setAttribute( 'color', new Float32BufferAttribute(colors, 3 ) );
         geometry.setAttribute( 'normal', new Float32BufferAttribute(normals, 3 ) );
 
         geometry.setAttribute( 'uv', new Float32BufferAttribute(uvs, 2 ) );

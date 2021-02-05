@@ -16,12 +16,13 @@ export class MouseInput
 
         window.onmousedown = function(e)
         {
-            
+            e.preventDefault();
             that.button_state[e.button] = true;
         }
 
         window.onmousemove = function(e)
         {
+            e.preventDefault();
             that.mouseDelta = new Vector2(e.movementX, e.movementY);
         }
 
@@ -32,6 +33,7 @@ export class MouseInput
 
         window.onmouseup = function(e)
         {
+            e.preventDefault();
             that.button_state[e.button] = false;
         }
     }
