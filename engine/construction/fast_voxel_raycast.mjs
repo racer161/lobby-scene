@@ -44,7 +44,6 @@ function traceRay_impl(getVoxel,
         // exit check
         var b = getVoxel(ix, iy, iz);
         if (b) {
-            console.log(b);
             if (hit_pos) {
                 hit_pos[0] = px + t * dx
                 hit_pos[1] = py + t * dy

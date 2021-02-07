@@ -57,21 +57,20 @@ export class Ground
     raycast()
     {
         var pos = this.camera_controller.camera.position.clone();
-        console.log("CAMERA POS : ", pos.x, pos.y, pos.z);
-
-        var result = this.camera_controller.camera.getWorldDirection();/*new Vector3(1,0,0);
+        //console.log("CAMERA POS : ", pos.x, pos.y, pos.z);
+        var dir = new Vector3();
+        this.camera_controller.camera.getWorldDirection(dir);/*new Vector3(1,0,0);
         var angle = this.camera_controller.camera.quaternion.clone();
         //angle.invert();
         result.applyQuaternion(angle);*/
 
-        console.log("CAMERA DIR : ", result.x, result.y, result.z);
+        //console.log("CAMERA DIR : ", result.x, result.y, result.z);
 
         //translate pos to voxel space
         //pos.divideScalar(this.scale);
         //pos.multiplyScalar(this.size);
 		//console.log(pos);
 
-        var dir = result;
         var result = this.grid.raycast([pos.x, pos.y, pos.z],[dir.x,dir.y, dir.z]);
         var transformation = new Vector3(
             (result[0]/this.size) * this.scale, 
@@ -81,7 +80,7 @@ export class Ground
 
         //transformation.add(this.camera_controller.camera.position.clone());
 
-        console.log(result);
+        //console.log(result);
 
         this.brush.position.set(result[0], result[1], result[2]);
     }

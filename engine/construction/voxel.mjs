@@ -307,7 +307,7 @@ export class Voxel
 		var result = traceRay(this.is_cell_filled.bind(this), 
 		pos, dir, 100, hit_pos, hit_norm);
 
-		console.log("HIT: " + result);
+		//console.log("HIT: " + result);
 
 		return hit_pos;
 
