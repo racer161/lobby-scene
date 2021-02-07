@@ -1,13 +1,12 @@
-import { Mesh, TextureLoader, MeshStandardMaterial, BufferGeometry, Float32BufferAttribute, NearestFilter, DoubleSide, MeshBasicMaterial, RepeatWrapping } from "../three.module.js";
-import { top, left, right, front, back } from "./voxel_util.mjs";
-//import { NaiveNet } from "./surfacenets.js";
-
-import { MarchingCubes } from './MarchingCubes.js';
+import { Mesh, TextureLoader, MeshStandardMaterial, BufferGeometry, Float32BufferAttribute, NearestFilter, DoubleSide, MeshBasicMaterial, RepeatWrapping, Vector2, Vector3, BoxGeometry, Camera } from "../three.module.js";
+import { Voxel } from './voxel.mjs';
 
 export class Ground
 {
-    constructor(size, scene, scale)
+    constructor(size, scene, scale, mouse_input, camera_controller)
     {
+        this.camera_controller = camera_controller;
+
         this.size = size;
         this.scene = scene;
         this.scale = scale;
@@ -17,17 +16,19 @@ export class Ground
         const texture = loader.load('./resources/grass_block_top.png');
         texture.magFilter = NearestFilter;
         texture.minFilter = NearestFilter;
-        //texture.repeat = RepeatWrapping;
+        texture.wrapS = RepeatWrapping;
+        texture.wrapT = RepeatWrapping;
+        texture.repeat = new Vector2(4,4);
 
         this.material = new MeshStandardMaterial( {
-            side: 2,
+            //side: 1,
             //color : 0xffffff,
             map: texture,
             //wireframe : true
         } );
 
 
-        this.grid = new MarchingCubes(this.size, this.material, true, false);
+        this.grid = new Voxel(this.size, this.material, true, false);
 
 
         this.grid.reset();
@@ -42,17 +43,54 @@ export class Ground
 
         this.mesh = new Mesh(this.geometry, this.material);
 
-        this.mesh.position.set( 0, 0, 0 );
+        this.mesh.position.set( this.scale, this.scale, this.scale);
         this.mesh.scale.set( this.scale, this.scale, this.scale );
 
         this.mesh.castShadow = true; //default is false
         this.mesh.receiveShadow = true; //default
+
+        this.build_brush_cube();
     }
+
+    //this function takes two vector3s pos and dir
+    //returns the coord hit in world space
+    raycast()
+    {
+        var pos = this.camera_controller.camera.position.clone();
+        console.log("CAMERA POS : ", pos.x, pos.y, pos.z);
+
+        var result = this.camera_controller.camera.getWorldDirection();/*new Vector3(1,0,0);
+        var angle = this.camera_controller.camera.quaternion.clone();
+        //angle.invert();
+        result.applyQuaternion(angle);*/
+
+        console.log("CAMERA DIR : ", result.x, result.y, result.z);
+
+        //translate pos to voxel space
+        //pos.divideScalar(this.scale);
+        //pos.multiplyScalar(this.size);
+		//console.log(pos);
+
+        var dir = result;
+        var result = this.grid.raycast([pos.x, pos.y, pos.z],[dir.x,dir.y, dir.z]);
+        var transformation = new Vector3(
+            (result[0]/this.size) * this.scale, 
+            (result[1]/this.size) * this.scale, 
+            (result[2]/this.size) * this.scale
+        );
+
+        //transformation.add(this.camera_controller.camera.position.clone());
+
+        console.log(result);
+
+        this.brush.position.set(result[0], result[1], result[2]);
+    }
+
 
     gen_rng_ground()
     {
         
-
+        /*
         for(var z = 2; z < this.size-2; z++)
         {
             for(var y = 5; y < 6; y++)
@@ -63,7 +101,9 @@ export class Ground
                     //Math.random() * 20
                 }
             }
-        }
+        }*/
+
+        
 
         for(var z = 2; z < this.size-2; z++)
         {
@@ -74,43 +114,46 @@ export class Ground
                 this.grid.setCell(x,4,z, 50);
             }
         }
-    }
 
-    build()
-    {
-        const vertices = [];
-        const normals = [];
-        const indices = [];
-        //const colors = [];
-        const uvs = [];
-
-        for(var z = 0; z < this.size; z++)
+        for(var z = 0; z < 8; z++)
         {
-            for(var x = 0; x < this.size; x++)
+            for(var x = 0; x < 8; x++)
             {
-                if(this.grid[x + (z * this.size)] > 0) continue;
-
-                var first_index = (x + (z * this.size)) * 20;
-
-                top(x,z,vertices,normals,uvs,indices, first_index);
-                left(x,z,vertices,normals,uvs,indices, first_index + 4);
-                right(x,z,vertices,normals,uvs,indices, first_index + 8);
-                front(x,z,vertices,normals,uvs,indices, first_index + 12);
-                back(x,z,vertices,normals,uvs,indices, first_index + 16);
+                this.grid.setCell(x,2,z, 0);
+                this.grid.setCell(x,3,z, 0);
+                this.grid.setCell(x,4,z, 0);
             }
         }
 
-        var geometry = new BufferGeometry();
-        geometry.setIndex(indices);
-        geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-        //geometry.setAttribute( 'color', new Float32BufferAttribute(colors, 3 ) );
-        geometry.setAttribute( 'normal', new Float32BufferAttribute(normals, 3 ) );
-
-        geometry.setAttribute( 'uv', new Float32BufferAttribute(uvs, 2 ) );
-
-        //geometry.computeFaceNormals();
-        
-        return geometry;
+        for(var z = 8; z < 32; z++)
+        {
+            for(var x = 8; x < 32; x++)
+            {
+                this.grid.setCell(x,3,z, 0);
+                this.grid.setCell(x,4,z, 0);
+            }
+        }
     }
+    
+    Update()
+    {
+        var result = this.raycast();
+        
+    }
+
+    build_brush_cube()
+    {
+        const geometry = new BoxGeometry();
+        const material_1 = new MeshStandardMaterial( { 
+            color: 0x0000ff
+        } );
+        const cube = new Mesh( geometry, material_1 );
+        this.scene.add(cube);
+        this.brush = cube;
+    }
+
+    
 }
+
+
 

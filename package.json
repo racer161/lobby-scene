@@ -20,6 +20,7 @@
     "vr"
   ],
   "dependencies": {
+    "@dimforge/rapier3d": "^0.3.0",
     "three": "^0.125.2"
   }
 }

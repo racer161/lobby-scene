@@ -1,12 +1,18 @@
 
-import { Scene, WebGLRenderer, BoxGeometry, LineBasicMaterial, Vector3, BufferGeometry, Line, DirectionalLight, 
-        MeshStandardMaterial, HemisphereLight, ACESFilmicToneMapping, sRGBEncoding, Mesh, PCFSoftShadowMap,
-        CameraHelper
+import { Scene, WebGLRenderer, BoxGeometry, DirectionalLight, 
+        MeshStandardMaterial, HemisphereLight, ACESFilmicToneMapping, sRGBEncoding, PCFSoftShadowMap,
+        CameraHelper, Mesh, AmbientLight, TextureLoader, WebGLCubeRenderTarget, UnsignedByteType, PMREMGenerator, AxesHelper
  } from "./three.module.js";
+
+import { GUI } from "./GUI/dat.gui.module.js";
+
+
 import { MouseInput } from "./input.mjs";
 import { EditorCameraController } from "./camera.mjs";
 
 import {Ground} from "./construction/ground.mjs";
+
+import { RGBELoader } from "./skybox/RGBELoader.js";
 
 
 const scene = new Scene();
@@ -14,9 +20,11 @@ const mouse_input = new MouseInput();
 
 const camera_controller = new EditorCameraController(mouse_input);
 
+
 const renderer = new WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.toneMapping = ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.2;
 renderer.outputEncoding = sRGBEncoding;
 //renderer.shadowMap.enabled = true;
 //renderer.shadowMap.type = PCFSoftShadowMap;
@@ -25,15 +33,51 @@ document.body.appendChild( renderer.domElement );
 
 const geometry = new BoxGeometry();
 const material_1 = new MeshStandardMaterial( { color: 0x00ff00 } );
-//const cube = new Mesh( geometry, material_1 );
-//scene.add( cube );
+const cube = new Mesh( geometry, material_1 );
+scene.add( cube );
 
-const directionalLight = new DirectionalLight( 0xffffff, 0.9 );
+const directionalLight = new DirectionalLight( 0xffffff, 0.7 );
 directionalLight.position.set(16,16,16);
 
 //directionalLight.target = cube;
 //directionalLight.castShadow = true;
-scene.add( directionalLight );
+//scene.add( directionalLight );
+
+const pmremGenerator = new PMREMGenerator( renderer );
+				pmremGenerator.compileEquirectangularShader();
+
+//setup skybox
+new RGBELoader()
+					.setDataType( UnsignedByteType )
+					.setPath( 'resources/skyboxes/' )
+					.load( 'TexturesCom_NorwayHighlandsB_1K_hdri_sphere.hdr', function ( texture ) {
+
+						const envMap = pmremGenerator.fromEquirectangular( texture ).texture;
+
+						scene.background = envMap;
+						scene.environment = envMap;
+
+						texture.dispose();
+						pmremGenerator.dispose();
+
+						//render();
+
+} );
+
+
+
+/*
+{
+    const loader = new TextureLoader();
+    const texture = loader.load(
+      'resources/skyboxes/TexturesCom_NorwayHighlandsB_1K_hdri_sphere_tone.jpg',
+      () => {
+        const rt = new WebGLCubeRenderTarget(texture.image.height);
+        rt.fromEquirectangularTexture(renderer, texture);
+        scene.background = rt;
+      });
+}*/
+
 
 //Set up shadow properties for the light
 //directionalLight.shadow.mapSize.width = 512; // default
@@ -45,21 +89,38 @@ scene.add( directionalLight );
 //scene.add( helper );
 
 
-const light = new HemisphereLight( 0xffffbb, 0x080820, .5 );
-scene.add(light);
+//const light = new AmbientLight( 0x404040 , .5); // soft white light
+//scene.add(light);
 
-const textured_cube = new Ground(32, scene,8);
-scene.add(textured_cube.mesh);
+const datGui  = new GUI({ autoPlace: true });
+  
+datGui.domElement.id = 'gui' 
+
+var folder = datGui.addFolder(`Scene`)
+
+folder.add(renderer,'toneMappingExposure',0.1,1.5) //
+  .name('exposure')
+  //.onChange(animate)
+
+const axesHelper = new AxesHelper( 5 );
+scene.add( axesHelper );
+  
+
+const ground = new Ground(64, scene, 32, mouse_input, camera_controller);
+scene.add(ground.mesh);
+
+folder.add(ground, "raycast").name("Nuke'em all!");
 
 function animate() {
     //HANDLE INPUT
     camera_controller.Update();
     mouse_input.Update();
     
+    
     requestAnimationFrame( animate );
     renderer.render( scene, camera_controller.camera );
 
-
+    //ground.Update();
 }
 
 animate();
