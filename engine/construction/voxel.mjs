@@ -1,14 +1,17 @@
-import { BufferGeometry, BufferAttribute } from "../three.module.js";
+import { BufferGeometry, BufferAttribute, ImmediateRenderObject, Object3D, Vector3 } from "../three.module.js";
 import { polygonize, concatenate } from "./marching_cubes_util.mjs";
 import { traceRay } from "./fast_voxel_raycast.mjs";
 
 
-export class Voxel
+export class Voxel extends ImmediateRenderObject
 {
     constructor(resolution, material, enableUvs, enableColors)
     {
+		super(material);
+
+		this.boundary_threshold = 4;
         //ImmediateRenderObject.call( this, material );
-		this.material = material;
+		//this.material = material;
 
         var scope = this;
 
@@ -57,22 +60,13 @@ export class Voxel
 		this.positionArray = new Float32Array( this.maxCount * 3 );
 		this.normalArray = new Float32Array( this.maxCount * 3 );
 
-		if ( this.enableUvs ) {
+		if ( this.enableUvs ) this.uvArray = new Float32Array( this.maxCount * 2 );
 
-			this.uvArray = new Float32Array( this.maxCount * 2 );
-
-		}
-
-		if ( this.enableColors ) {
-
-			this.colorArray = new Float32Array( this.maxCount * 3 );
-
-		}
+		if ( this.enableColors ) this.colorArray = new Float32Array( this.maxCount * 3 );
     }
 
     end( renderCallback ) 
     {
-
 		if ( this.count === 0 ) return;
 
 		for ( var i = this.count * 3; i < this.positionArray.length; i ++ ) {
@@ -110,6 +104,41 @@ export class Voxel
 		this.field[ index ] = value;
 	}
 
+	subtractCell(x,y,z, sub, brush_size)
+	{
+		//if the coord is out of bounds return undefined
+		if(x < this.boundary_threshold || y < this.boundary_threshold || z < this.boundary_threshold 
+			|| x > this.size-this.boundary_threshold || y > this.size-this.boundary_threshold || z > this.size-this.boundary_threshold ) return false;
+
+		for(var x_i = x-brush_size; x_i < x + brush_size; x_i++ )
+		{
+			for(var z_i = z-brush_size; z_i < z + brush_size; z_i++ )
+			{
+				for(var y_i = y-brush_size; y_i < y + brush_size; y_i++ )
+				{
+					if(x_i < this.boundary_threshold || y_i < this.boundary_threshold || z_i < this.boundary_threshold 
+						|| x_i > this.size-this.boundary_threshold || y_i > this.size-this.boundary_threshold || z_i > this.size-this.boundary_threshold ) continue;
+
+					var distance = new Vector3(x_i, y_i, z_i).distanceTo(new Vector3(x,y,z));
+
+					var index = this.size2 * z_i + this.size * y_i + x_i;
+					this.field[index] +=(sub/distance);
+				}
+			}
+		}
+
+		return true;
+		/*
+		//var index = this.size2 * z + this.size * y + x;
+		var value = this.field[index];
+
+		//minimum of zero for an index just to keep things clean
+		//this.field[ index ] = Math.max(0, value - sub);
+
+		this.field[index] = value + sub;
+		return true;*/
+	}
+
 	getCell( x, y, z ) 
     {
 		var index = this.size2 * z + this.size * y + x;
@@ -119,11 +148,7 @@ export class Voxel
 	blur( intensity ) 
     {
 
-		if ( intensity === undefined ) {
-
-			intensity = 1;
-
-		}
+		if ( intensity === undefined ) intensity = 1;
 
 		var field = this.field;
 		var fieldCopy = field.slice();
@@ -193,8 +218,24 @@ export class Voxel
 		}
 	}
 
-	render( renderCallback ) 
+	reset_cache() 
     {
+		// wipe the normal cache
+
+		for (var i = 0; i < this.size3; i ++ ) {
+
+			this.normal_cache[ i * 3 ] = 0.0;
+			//this.field[ i ] = 0.0;
+			this.palette[ i * 3 ] = this.palette[ i * 3 + 1 ] = this.palette[
+				i * 3 + 2
+			] = 0.0;
+
+		}
+	}
+
+	render = function( renderCallback ) 
+    {
+		
         var scope = this;
 
 		this.count = 0;
@@ -272,8 +313,6 @@ export class Voxel
 		};
 
 		this.render( geo_callback );
-
-		console.log(this.hasNormals);
 
 		if ( this.hasPositions )
 			geo.setAttribute( 'position', new BufferAttribute( posArray, 3 ) );

@@ -10,8 +10,8 @@ export class EditorCameraController
         this.camera.position.y = 7;
         this.camera.position.z = 11;
 
-        this.rotation_sensitivity = 0.002;
-        this.translation_sensitivity = 0.01;
+        this.rotation_sensitivity = 0.005;
+        this.translation_sensitivity = 0.05;
         this.zoom_sensitivity = 0.5;
 
         this.euler_rotation = new Euler();

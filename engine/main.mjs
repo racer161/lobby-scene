@@ -106,10 +106,13 @@ const axesHelper = new AxesHelper( 5 );
 scene.add( axesHelper );
   
 
-const ground = new Ground(64, scene, 32, mouse_input, camera_controller);
-scene.add(ground.mesh);
+const ground = new Ground(64, scene,64, mouse_input, camera_controller);
 
-folder.add(ground, "raycast").name("Nuke'em all!");
+folder.add(ground, "reset").name("Nuke'em all!");
+
+folder.add(ground,'brush_size',1,10).step(1).name('brush size');
+
+folder.add(ground,'brush_strength',0,3).name('brush strength');
 
 function animate() {
     //HANDLE INPUT
