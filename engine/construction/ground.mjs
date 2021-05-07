@@ -14,7 +14,7 @@ export class Ground
 
         //load texture
         const loader = new TextureLoader();
-        const texture = loader.load('./resources/grass_block_top.png');
+        const texture = loader.load('./resources/grasstile-pixelart.png');
         texture.magFilter = NearestFilter;
         texture.minFilter = NearestFilter;
         texture.wrapS = RepeatWrapping;

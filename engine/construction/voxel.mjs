@@ -9,7 +9,7 @@ export class Voxel extends ImmediateRenderObject
     {
 		super(material);
 
-		this.boundary_threshold = 4;
+		this.boundary_threshold = 3;
         //ImmediateRenderObject.call( this, material );
 		//this.material = material;
 
@@ -122,7 +122,9 @@ export class Voxel extends ImmediateRenderObject
 					var distance = new Vector3(x_i, y_i, z_i).distanceTo(new Vector3(x,y,z));
 
 					var index = this.size2 * z_i + this.size * y_i + x_i;
-					this.field[index] +=(sub/distance);
+					var current_value = this.field[index];
+
+					this.field[index] = Math.min((sub/distance) + current_value, 2);
 				}
 			}
 		}
